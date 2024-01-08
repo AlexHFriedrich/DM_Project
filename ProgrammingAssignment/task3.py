@@ -1,13 +1,17 @@
 import networkx as nx
 import numpy as np
 import torch
+import time
 import torch.nn as nn
 import torch.optim as optim
+import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 from torch_geometric.data import Data
 from torch_geometric.loader import DataLoader
 from torch_geometric.nn import GCNConv
 from torch_geometric.utils.convert import from_networkx
+from scipy.stats import kendalltau
+import pandas as pd
 
 
 # read in Graph data for Pytorch Geometric
@@ -19,12 +23,28 @@ paths = ['./data/moreno_propro/out.moreno_propro_propro',
          'data/moreno_health/out.moreno_health_health']
 G = read_graph(paths[0])
 
+# Initialize an empty dictionary to store the running times
+running_times = {}
 
 def calc_targets(graph):
-    degree_centrality = nx.degree_centrality(graph)
-    eigenvector_centrality = nx.eigenvector_centrality(graph, max_iter=1000)
-    page_rank = nx.pagerank(graph)
-    return [degree_centrality, eigenvector_centrality, page_rank]
+    centrality_measures = ['degree_centrality', 'eigenvector_centrality', 'page_rank']
+    functions = [nx.degree_centrality, nx.eigenvector_centrality, nx.pagerank]
+    targets = []
+    
+    for measure, function in zip(centrality_measures, functions):
+        start_time = time.time()
+        if measure == 'eigenvector_centrality':
+            result = function(graph, max_iter=1000)
+        else:
+            result = function(graph)
+        running_time = time.time() - start_time
+
+        # Store the running time in the dictionary
+        running_times[measure] = running_time
+
+        targets.append(result)
+
+    return targets
 
 
 def create_dataset(g, targets):
@@ -72,6 +92,26 @@ def preprocessing(path):
 
     return train_data_sets
 
+def plot_approximation_ratio(data, test_out):
+    eps = 1e-8  # small constant to avoid division by 0
+    approx_ratios = test_out.view(-1) / (data.y + eps)
+    plt.hist(approx_ratios.numpy(), bins=50, alpha=0.7, color='blue', label='Approximation Ratios')
+    plt.axvline(x=1, color='red', linestyle='--', label='True Value')
+    plt.xlabel('Approximation Ratio')
+    plt.ylabel('Frequency')
+    plt.title('Distribution of Approximation Ratios')
+    plt.legend()
+    plt.show()
+
+def compute_kendall_tau(data, test_out):
+    # Compute the rankings of the true and predicted values
+    true_ranking = np.argsort(data.y.numpy())
+    predicted_ranking = np.argsort(test_out.view(-1).numpy())
+
+    # Compute Kendall's tau
+    tau, p_value = kendalltau(true_ranking, predicted_ranking)
+
+    print(f"Kendall's tau: {tau}")
 
 # Define a model
 class GNN(nn.Module):
@@ -91,8 +131,6 @@ def process(model, data, num_steps=100, lr=0.01):
     criterion = nn.L1Loss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
 
-    # train_loader = DataLoader([data], shuffle=True)
-
     for epoch in range(num_steps):
         model.train()
         running_loss = 0.0
@@ -105,27 +143,30 @@ def process(model, data, num_steps=100, lr=0.01):
 
         running_loss += loss.item()
 
-        # print(f'Epoch {epoch + 1}/{max_iter}, Loss: {running_loss / len(train_loader)}')
-
     print('Training finished.')
     train_loss = criterion(out.view(-1)[data.train_mask], data.y[data.train_mask])
     print(f'Train Loss: {train_loss.item()}')
-    # train_acc = torch.sum(
-    #   torch.where((out.view(-1)[data.train_mask] - data.y[data.train_mask]) < tol, 1, 0)) / torch.sum(data.train_mask)
-    # print(f'Train Accuracy: {train_acc.item()}')
     model.eval()
     with torch.no_grad():
+        start_time = time.time()
         test_out = model(data.x.view(-1, 1), data.edge_index)
+        gnn_time = time.time() - start_time
+        running_times['gnn_method'] = gnn_time
 
         test_loss = criterion(test_out.view(-1), data.y)
         print(f'Test Loss: {test_loss.item()}')
 
-        # test_acc = torch.sum(torch.where((test_out.view(-1) - data.y) < tol, 1, 0)) / len(data.y)
-        # print(f'Test Accuracy: {test_acc.item()}')
+        plot_approximation_ratio(data, test_out)
+        compute_kendall_tau(data, test_out)
 
+def print_running_times():
+    df = pd.DataFrame(running_times, index=['Running Time'])
+    print(df)
 
 for p in paths:
     data_sets = preprocessing(p)
     for train_data in data_sets:
         model = GNN(in_channels=1, hidden_channels=128, out_channels=1)
         process(model, train_data, num_steps=500)
+        print_running_times()
+

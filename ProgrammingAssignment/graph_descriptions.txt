@@ -1,0 +1,7 @@
+Yeast - moreno_propro 
+Undirected, unweighted network of protein-protein interactions in yeast. Nodes represent proteins and edges represent metabolic interaction between the two proteins. 
+The network contains 1870 proteins and 2277 edges. 
+
+Adolescent health - moreno_health 
+This directed network represents friends among students. Nodes represent students and an edge from a student to another shows that the left student chose the right student as a friend. Edges are weighted, representing interaction strength. 
+The network contains 2539 nodes and 12969 edges. 

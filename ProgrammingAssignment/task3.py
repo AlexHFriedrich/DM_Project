@@ -6,9 +6,10 @@ import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
+from torch.nn import ReLU
 from torch_geometric.data import Data
 from torch_geometric.loader import DataLoader
-from torch_geometric.nn import GCNConv
+from torch_geometric.nn import GCNConv, GINConv, global_mean_pool, Sequential, Linear
 from torch_geometric.utils.convert import from_networkx
 from scipy.stats import kendalltau
 import pandas as pd
@@ -16,6 +17,10 @@ import pandas as pd
 
 # read in Graph data for Pytorch Geometric
 def read_graph(path):
+    """
+    :param path: path to the graph
+    :return: a networkx graph
+    """
     # Read in the graph
     return nx.read_adjlist(path, delimiter=' ', nodetype=int, comments='%')
 
@@ -56,11 +61,11 @@ def calc_targets(graph):
 
 
 def create_dataset(g, targets):
-    '''
+    """
     :param g: networkx graph
     :param targets: dictionary of centrality measures
     :return: a PyTorch Geometric Data object
-    '''
+    """
     # Extract node indices and corresponding degree centrality values
     x, y = zip(*[(node, targets[node]) for node in g.nodes])
 
@@ -112,7 +117,7 @@ def preprocessing(path):
     if nx.is_directed(G_networkx):
         G_networkx = nx.read_edgelist(path, delimiter=' ', nodetype=int, comments='%')
 
-    targets = calc_targets(g)
+    targets = calc_targets(G_networkx)
 
     train_data_sets = [create_dataset(G_networkx, target) for target in targets]
 
@@ -146,18 +151,112 @@ def compute_kendall_tau(data, test_out):
     :param test_out: predicted values
     Compute Kendall's tau between the true and predicted values
     """
-    # Compute the rankings of the true and predicted values
-    true_ranking = np.argsort(data.y.numpy())
-    predicted_ranking = np.argsort(test_out.view(-1).numpy())
-
     # Compute Kendall's tau
-    tau, _ = kendalltau(true_ranking, predicted_ranking)
+    tau, _ = kendalltau(data.y.numpy(), test_out.view(-1).numpy())
 
     print(f"Kendall's tau: {tau}")
 
 
-class GNN_3(nn.Module):
+class GIN0(torch.nn.Module):
+    """
+    https://github.com/sw-gong/GNN-Tutorial/blob/master/GNN-tutorial-solution.ipynb
+    """
+    def __init__(self, dataset, num_layers, hidden):
+        super(GIN0, self).__init__()
+        self.conv1 = GINConv(Sequential(
+            Linear(dataset.num_features, hidden),
+            ReLU(),
+            Linear(hidden, hidden),
+            ReLU(),
+            BN(hidden),
+        ),
+            train_eps=False)
+        self.convs = torch.nn.ModuleList()
+        for i in range(num_layers - 1):
+            self.convs.append(
+                GINConv(Sequential(
+                    Linear(hidden, hidden),
+                    ReLU(),
+                    Linear(hidden, hidden),
+                    ReLU(),
+                    BN(hidden),
+                ),
+                    train_eps=False))
+        self.lin1 = Linear(hidden, hidden)
+        self.lin2 = Linear(hidden, dataset.num_classes)
 
+    def reset_parameters(self):
+        self.conv1.reset_parameters()
+        for conv in self.convs:
+            conv.reset_parameters()
+        self.lin1.reset_parameters()
+        self.lin2.reset_parameters()
+
+    def forward(self, data):
+
+        x, edge_index, batch = data.x, data.edge_index, data.batch
+        x = self.conv1(x, edge_index)
+        for conv in self.convs:
+            x = conv(x, edge_index)
+        x = global_mean_pool(x, batch)
+        x = F.relu(self.lin1(x))
+        x = F.dropout(x, p=0.5, training=self.training)
+        x = self.lin2(x)
+        return F.log_softmax(x, dim=-1)
+
+
+class GIN(torch.nn.Module):
+    """
+    https://github.com/sw-gong/GNN-Tutorial/blob/master/GNN-tutorial-solution.ipynb
+    """
+    def __init__(self, dataset, num_layers, hidden):
+        super(GIN, self).__init__()
+        self.conv1 = GINConv(Sequential(
+            Linear(dataset.num_features, hidden),
+            ReLU(),
+            Linear(hidden, hidden),
+            ReLU(),
+            BN(hidden),
+        ),
+            train_eps=True)
+        self.convs = torch.nn.ModuleList()
+        for i in range(num_layers - 1):
+            self.convs.append(
+                GINConv(Sequential(
+                    Linear(hidden, hidden),
+                    ReLU(),
+                    Linear(hidden, hidden),
+                    ReLU(),
+                    BN(hidden),
+                ),
+                    train_eps=True))
+        self.lin1 = Linear(hidden, hidden)
+        self.lin2 = Linear(hidden, dataset.num_classes)
+
+    def reset_parameters(self):
+        self.conv1.reset_parameters()
+        for conv in self.convs:
+            conv.reset_parameters()
+        self.lin1.reset_parameters()
+        self.lin2.reset_parameters()
+
+    def forward(self, data):
+
+        x, edge_index, batch = data.x, data.edge_index, data.batch
+        x = self.conv1(x, edge_index)
+        for conv in self.convs:
+            x = conv(x, edge_index)
+        x = global_mean_pool(x, batch)
+        x = F.relu(self.lin1(x))
+        x = F.dropout(x, p=0.5, training=self.training)
+        x = self.lin2(x)
+        return F.log_softmax(x, dim=-1)
+
+
+class GNN_3(nn.Module):
+    """
+    A simple GNN with three GCNConv layers
+    """
     def __init__(self, in_channels, hidden_channels, out_channels):
         super(GNN_3, self).__init__()
         self.conv1 = GCNConv(in_channels, hidden_channels)
@@ -179,7 +278,6 @@ class GNN_2(nn.Module):
     def __init__(self, in_channels, hidden_channels, out_channels):
         super(GNN_2, self).__init__()
         self.conv1 = GCNConv(in_channels, hidden_channels)
-
         self.conv2 = GCNConv(hidden_channels, out_channels)
 
     def forward(self, x, edge_index):
@@ -282,13 +380,15 @@ if __name__ == '__main__':
     models_3 = [(create_model(config, model_type=GNN_3), config) for config in configs]
 
     models = models_2 + models_3
+
+    num_steps = 50
     for p in paths:
         data_sets = preprocessing(p)
         for i, train_data in enumerate(data_sets):
             # store train and test errors of different configs in a dictionary
             errors = {'test_error': []}
             for model in models:
-                res = process(model[0], train_data, num_steps=100, tune=True)
+                res = process(model[0], train_data, num_steps=num_steps, tune=True)
                 errors['test_error'].append(res['test_error'])
 
             # choose the model with the lowest test error
@@ -299,5 +399,5 @@ if __name__ == '__main__':
                 print('GNN_3')
             print(best_model[1])
 
-            process(best_model[0], train_data, num_steps=100, measure_int=i)
+            process(best_model[0], train_data, num_steps=num_steps, measure_int=i)
             print_running_times(measure=i)

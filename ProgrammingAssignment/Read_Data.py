@@ -9,11 +9,20 @@ from networkit.centrality import PageRank, EigenvectorCentrality, DegreeCentrali
 from torch_geometric.data import Data
 from torch_geometric.utils import from_networkit
 
-paths = {"social": "data/moreno_health/out.moreno_health_health",
-         "protein": "data/moreno_propro/out.moreno_propro_propro"}
+"""
+This file handles the reading of the data from the KONECT database, calculation of the centrality measures using 
+networkit and the conversion of the data to PyTorch Geometric Data objects.
+"""
+
+paths = {"Adolescent health network": "data/moreno_health/out.moreno_health_health",
+         "Yeast network": "data/moreno_propro/out.moreno_propro_propro"}
 
 
 def path_to_data(path) -> tuple[dict[str, tuple[Data, Any]], dict[str, Any]]:
+    """
+    :param path: path to the graph
+    :return: a tuple containing a dictionary of the data sets and a dictionary of the running times of the networkit
+    """
     # read graph
     konectReader = nk.graphio.KONECTGraphReader()
     Gnk = konectReader.read(path)
@@ -29,6 +38,11 @@ def path_to_data(path) -> tuple[dict[str, tuple[Data, Any]], dict[str, Any]]:
 
 def centrality_from_network_it(graph) -> tuple[
     dict[str, Union[PageRank, EigenvectorCentrality, DegreeCentrality]], dict[str, Any]]:
+    """
+    :param graph: networkit graph
+    :return: a tuple containing a dictionary of the centrality measures and a dictionary of the running times of the
+    networkit
+    """
     running_times = {}
     # degree centrality
     start = time.perf_counter()
@@ -51,6 +65,11 @@ def centrality_from_network_it(graph) -> tuple[
 
 
 def pyg_data_from_network_it(graph, measure):
+    """
+    :param graph: networkit graph
+    :param measure: centrality measure
+    :return: a PyTorch Geometric Data object
+    """
     indices, weights = from_networkit(graph)
     x = torch.tensor(list(range(graph.numberOfNodes())), dtype=torch.float).view(-1, 1)
     if graph.isWeighted():
@@ -68,12 +87,11 @@ def pyg_data_from_network_it(graph, measure):
 
 
 def load_data_list():
+    """
+    :return: a dictionary of the data sets
+    """
     return {path: path_to_data(paths[path]) for path in paths}
 
 
-def main():
-    return load_data_list()
-
-
 if __name__ == "__main__":
-    main()
+    pass

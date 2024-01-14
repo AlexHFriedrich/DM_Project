@@ -1,11 +1,17 @@
 import matplotlib.pyplot as plt
 from scipy.stats import kendalltau
 
+"""
+This file contains functions for computing the approximation ratio and Kendall's tau, as well as a function for
+printing the metrics.
+"""
 
-def plot_approximation_ratio(data, test_out, measure=""):
+
+def plot_approximation_ratio(data, test_out, net, measure=""):
     """
     :param data: PyTorch Geometric Data object
     :param test_out: predicted values
+    :param net: network name
     :param measure: centrality measure
     Produce a histogram of the approximation ratios
     """
@@ -19,7 +25,7 @@ def plot_approximation_ratio(data, test_out, measure=""):
     plt.ylabel('Frequency')
     plt.title(f'Distribution of Approximation Ratios - {measure}')
     plt.legend()
-    plt.show()
+    plt.savefig(f'plots/{net}_approx_ratios_{measure}.png')
 
 
 def compute_kendall_tau(data, test_out):
@@ -32,4 +38,5 @@ def compute_kendall_tau(data, test_out):
     # Compute Kendall's tau
     tau, _ = kendalltau(data.y.detach(), test_out.detach())
 
-    print(f"Kendall's tau: {tau}")
+    return tau
+

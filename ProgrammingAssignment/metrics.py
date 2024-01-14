@@ -26,6 +26,7 @@ def plot_approximation_ratio(data, test_out, net, measure=""):
     plt.title(f'Distribution of Approximation Ratios - {measure}')
     plt.legend()
     plt.savefig(f'plots/{net}_approx_ratios_{measure}.png')
+    plt.close()
 
 
 def compute_kendall_tau(data, test_out):

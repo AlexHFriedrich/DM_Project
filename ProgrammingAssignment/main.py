@@ -72,8 +72,9 @@ if __name__ == "__main__":
                     opt_config_dict["final_train_error"] = train_error.detach().numpy()
                     opt_config_dict["min_time"] = end - start
 
-            running_times_nn[measure] = opt_config_dict["min_time"]
             plot_approximation_ratio(dataset[0], opt_config_dict["final_out"], net, measure)
+            running_times_nn[measure] = opt_config_dict["min_time"]
+
             # update the dataframe
             df.loc[len(df)] = {'Network': net, 'Measure': measure,
                                'Final Train Error': opt_config_dict["final_train_error"],

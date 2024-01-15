@@ -6,14 +6,23 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
 
+# file formats
 FORMATS =  {'KONECT': nk.graphio.Format.KONECT, 
             'SNAP': nk.graphio.Format.SNAP, 
             }
 
 
 def plot_graph(Gnk, title, outfile): 
-    """plot networkit graph in spring layout with nodes colored by degree,
-    and save to outfile"""
+    """plot networkit graph, with nodes colored by degree
+    
+    :param Gnk: a networkit graph
+    :type Gnk: networkit.graph
+    :param title: title of figure
+    :type title: str
+    :param outfile: name of output file
+    :type outfile: str    
+    """
+
     
     # convert networkit graph to networkx graph for plotting
     Gnx = nk.nxadapter.nk2nx(Gnk) 
@@ -42,7 +51,16 @@ def plot_graph(Gnk, title, outfile):
     
     
 def get_subgraph(Gnk, n):
-    """ get subgraph of top n nodes based on (out)degree and their (out)neighbors"""
+    """get subgraph of top n nodes based on (out)degree and their (out)neighbors
+    
+    :param Gnk: a networkit graph
+    :type Gnk: networkit.graph
+    :param n: use top n nodes
+    :type n: int
+    :return: subgraph 
+    :rtype: networkit.graph
+    """
+    
     #calculate degree
     d = nk.centrality.DegreeCentrality(Gnk, outDeg=True)
     d.run()    
@@ -55,7 +73,11 @@ def get_subgraph(Gnk, n):
 
 
 def print_stats(Gnk): 
-    """ print basic stats of networkit graph """
+    """print basic stats of networkit graph
+    
+    :param Gnk: a networkit graph
+    :type Gnk: networkit.graph
+    """
     
     dout = np.array(nk.centrality.DegreeCentrality(Gnk, outDeg = True).run().scores())
     din = np.array(nk.centrality.DegreeCentrality(Gnk, outDeg = False).run().scores())
@@ -75,13 +97,12 @@ if __name__ == '__main__':
     # file format
     file_format = 'KONECT'
     
-    # path to files
-    files = ['data/moreno_propro/out.moreno_propro_propro',
-             'data/moreno_health/out.moreno_health_health']
+    # path to files  
+    files = {'Yeast':'data/moreno_propro/out.moreno_propro_propro',
+             'Adolescent Health': 'data/moreno_health/out.moreno_health_health'}   
     
     
-    for file in files: 
-        graph_name = file.split('/')[-1]
+    for graph_name, file in files.items(): 
         
         # read graph
         Gnk = nk.graphio.readGraph(file, fileformat = FORMATS[file_format])

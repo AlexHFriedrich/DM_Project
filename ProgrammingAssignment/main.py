@@ -86,4 +86,4 @@ if __name__ == "__main__":
                                'Running Time NN': running_times_nn[measure],
                                'Time Difference': running_times_network_it[measure] - running_times_nn[measure]}
 
-    print(df.to_string())
+    df.to_csv('results.csv', index=False)

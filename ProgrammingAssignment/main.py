@@ -46,7 +46,7 @@ if __name__ == "__main__":
                 optimizer = torch.optim.Adam(gin.parameters(), lr=0.001)
                 criterion = torch.nn.L1Loss()
 
-                num_epochs = 500
+                num_epochs = 5
                 for epoch in range(num_epochs + 1):
                     optimizer.zero_grad()
 
@@ -62,7 +62,7 @@ if __name__ == "__main__":
 
                 train_error = criterion(out.view(-1)[train_mask], data.y[train_mask].view(-1))
                 start = time.perf_counter()
-                test_error = criterion(out.view(-1), data.y.view(-1))
+                test_error = criterion(out.view(-1)[~train_mask], data.y.view(-1)[~train_mask])
                 end = time.perf_counter()
 
                 if test_error.detach().numpy() < opt_config_dict["min_test_error"]:

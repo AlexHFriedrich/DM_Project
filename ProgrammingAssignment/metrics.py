@@ -17,20 +17,23 @@ def plot_approximation_ratio(data, test_out, net, measure=""):
     Produce a histogram of the absolute distances between the true and predicted values
     """
 
-    approx_ratios = (torch.abs(test_out - data.y.view(-1))).view(-1).detach()
+    absol_dists = (torch.abs(test_out - data.y.view(-1))).view(-1).detach()
 
-    plt.hist(approx_ratios, bins=50, alpha=0.7, color='blue', label='Absolute Distances')
+    plt.hist(absol_dists, bins=50, alpha=0.7, color='blue', label='Absolute Distances')
     plt.axvline(x=0, color='red', linestyle='--', label='True Value')
     plt.xlabel('Absolute Distances')
     plt.ylabel('Frequency')
     plt.title(f'Distribution of absolute distances - {measure}')
     plt.legend()
-    plt.savefig(f'plots/{net}_approx_ratios_{measure}.png')
+    plt.savefig(f'plots/{net}_absol_dist_{measure}.png')
     plt.close()
 
     plt.scatter(test_out, data.y.view(-1).detach())
-    plt.show()
-
+    plt.xlabel('Predicted Values')
+    plt.ylabel('True Values')
+    plt.title(f'Predicted vs. True Values of Node Property - {measure}')
+    plt.savefig(f'plots/{net}_scatter_{measure}.png')
+    plt.close()
 
 def compute_kendall_tau(data, test_out):
     """

@@ -3,9 +3,9 @@ import time
 import torch
 from tqdm import tqdm
 import pandas as pd
-from ProgrammingAssignment.Read_Data import load_data_list
-from ProgrammingAssignment.metrics import compute_kendall_tau, plot_approximation_ratio
-from ProgrammingAssignment.model import GIN
+from Read_Data import load_data_list
+from metrics import compute_kendall_tau, plot_approximation_ratio
+from model import GIN
 
 """
 This file contains the main function that is used for task 3. The models are trained on the configs below, and the
@@ -41,12 +41,13 @@ if __name__ == "__main__":
                 gin = GIN(*configs[config])
 
                 data, train_mask = dataset
+
                 # train the model
                 gin.train()
                 optimizer = torch.optim.Adam(gin.parameters(), lr=0.001)
                 criterion = torch.nn.L1Loss()
 
-                num_epochs = 5
+                num_epochs = 500
                 for epoch in range(num_epochs + 1):
                     optimizer.zero_grad()
 

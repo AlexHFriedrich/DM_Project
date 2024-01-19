@@ -46,7 +46,7 @@ def centrality_from_network_it(graph) -> tuple[
     running_times = {}
     # degree centrality
     start = time.perf_counter()
-    d = nkc.DegreeCentrality(graph, outDeg=True)
+    d = nkc.DegreeCentrality(graph, outDeg=True, normalized=True)
     d.run()
     running_times["Degree Centrality"] = time.perf_counter() - start
     # eigenvector centrality
@@ -57,7 +57,7 @@ def centrality_from_network_it(graph) -> tuple[
 
     # pagerank
     start = time.perf_counter()
-    p = nkc.PageRank(graph)
+    p = nkc.PageRank(graph, normalized=True)
     p.run()
     running_times["PageRank"] = time.perf_counter() - start
 

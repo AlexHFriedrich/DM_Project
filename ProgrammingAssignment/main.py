@@ -78,12 +78,13 @@ if __name__ == "__main__":
                     optimizer.step()
 
                 gin.eval()
-                out = gin.forward(x=data.x, edge_index=data.edge_index)
-
-                train_error = criterion(out.view(-1)[train_mask], data.y[train_mask].view(-1))
                 start = time.perf_counter()
-                test_error = criterion(out.view(-1)[~train_mask], data.y.view(-1)[~train_mask])
+                out = gin.forward(x=data.x, edge_index=data.edge_index)
                 end = time.perf_counter()
+                
+                train_error = criterion(out.view(-1)[train_mask], data.y[train_mask].view(-1))
+
+                test_error = criterion(out.view(-1)[~train_mask], data.y.view(-1)[~train_mask])
 
                 if test_error.detach().numpy() < opt_config_dict["min_test_error"]:
                     opt_config_dict["min_test_error"] = test_error.detach().numpy()
@@ -99,7 +100,8 @@ if __name__ == "__main__":
             df.loc[len(df)] = {'Network': net, 'Measure': measure,
                                'Final Train Error': opt_config_dict["final_train_error"],
                                'Min Test Error': opt_config_dict["min_test_error"],
-                               'Kendalls Tau': compute_kendall_tau(dataset[0], opt_config_dict["final_out"], ~train_mask),
+                               'Kendalls Tau': compute_kendall_tau(dataset[0], opt_config_dict["final_out"],
+                                                                   ~train_mask),
                                'Best Config': opt_config_dict["best_config"],
                                'Running Time Networkit': running_times_network_it[measure],
                                'Running Time NN': running_times_nn[measure],

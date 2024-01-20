@@ -40,14 +40,16 @@ def plot_approximation_ratio(data, test_out, net, measure=""):
     plt.close()
 
 
-def compute_kendall_tau(data, test_out):
+def compute_kendall_tau(data, test_out, test_mask=None):
     """
     :param data: PyTorch Geometric Data object
     :param test_out: predicted values
+    :param test_mask: mask for the test set
     Compute Kendall's tau between the true and predicted values
     """
-
+    if test_mask is None:
+        test_mask = torch.ones(data.num_nodes, dtype=torch.bool)
     # Compute Kendall's tau
-    tau, _ = kendalltau(data.y.detach(), test_out.detach())
+    tau, _ = kendalltau(data.y.detach()[test_mask], test_out.detach()[test_mask])
 
     return tau

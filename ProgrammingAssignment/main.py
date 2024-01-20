@@ -1,7 +1,7 @@
 import time
 
 import torch
-from tqdm import tqdm, trange
+from tqdm import tqdm
 import pandas as pd
 from Read_Data import load_data_list
 from metrics import compute_kendall_tau, plot_approximation_ratio
@@ -24,15 +24,22 @@ if __name__ == "__main__":
                '256_3': (256, 3), '256_4': (256, 4), '256_5': (256, 5)}
 
     data_sets = load_data_list()
+
+    # default value
+    train_mask = torch.zeros(1000, dtype=torch.bool)
     for network in tqdm(data_sets):
         net = network
         network = data_sets[net][0]
         running_times_network_it = data_sets[net][1]
         running_times_nn = {}
+        """
+        keys_to_delete = ["Eigenvector Centrality", "PageRank"]
+        for key in keys_to_delete:
+            del network[key]
+        """
         for dataset in tqdm(network):
             measure = dataset
             dataset = network[measure]
-
             opt_config_dict = {"min_test_error": 100000, "best_config": None, "min_time": 100000, "final_out": None,
                                "final_train_error": None}
 
@@ -92,7 +99,7 @@ if __name__ == "__main__":
             df.loc[len(df)] = {'Network': net, 'Measure': measure,
                                'Final Train Error': opt_config_dict["final_train_error"],
                                'Min Test Error': opt_config_dict["min_test_error"],
-                               'Kendalls Tau': compute_kendall_tau(dataset[0], opt_config_dict["final_out"]),
+                               'Kendalls Tau': compute_kendall_tau(dataset[0], opt_config_dict["final_out"], ~train_mask),
                                'Best Config': opt_config_dict["best_config"],
                                'Running Time Networkit': running_times_network_it[measure],
                                'Running Time NN': running_times_nn[measure],

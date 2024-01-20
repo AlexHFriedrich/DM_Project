@@ -3,6 +3,7 @@ from typing import Any, Union
 
 import networkit as nk
 import networkit.centrality as nkc
+import numpy as np
 import torch
 import torch_geometric
 from networkit.centrality import PageRank, EigenvectorCentrality, DegreeCentrality
@@ -36,6 +37,16 @@ def path_to_data(path) -> tuple[dict[str, tuple[Data, Any]], dict[str, Any]]:
     return data_sets, running_times_networkit
 
 
+def normalize_scores(scores):
+    """
+    :param scores: list of scores
+    :return: normalized scores
+    """
+    scores = np.array(scores)
+    scores = (scores - min(scores)) / (max(scores) - min(scores))
+    return scores
+
+
 def centrality_from_network_it(graph) -> tuple[
     dict[str, Union[PageRank, EigenvectorCentrality, DegreeCentrality]], dict[str, Any]]:
     """
@@ -44,23 +55,28 @@ def centrality_from_network_it(graph) -> tuple[
     networkit
     """
     running_times = {}
-    # degree centrality
+    # degree
     start = time.perf_counter()
-    d = nkc.DegreeCentrality(graph, outDeg=True, normalized=True)
+    d = nkc.DegreeCentrality(graph, outDeg=False)
     d.run()
-    running_times["Degree Centrality"] = time.perf_counter() - start
+    running_times["Degree"] = time.perf_counter() - start
+    # normalize the scores to be between 0 and 1
+    d_scores = normalize_scores(d.scores())
     # eigenvector centrality
     start = time.perf_counter()
     e = nkc.EigenvectorCentrality(graph)
     e.run()
     running_times["Eigenvector Centrality"] = time.perf_counter() - start
-
+    # normalize the scores to be between 0 and 1
+    e_scores = normalize_scores(e.scores())
     # pagerank
     start = time.perf_counter()
     p = nkc.PageRank(graph, normalized=True)
     p.run()
     running_times["PageRank"] = time.perf_counter() - start
-    return {"Degree Centrality": d, "Eigenvector Centrality": e, "PageRank": p}, running_times
+    # normalize the scores to be between 0 and 1
+    p_scores = normalize_scores(p.scores())
+    return {"Degree": d_scores, "Eigenvector Centrality": e_scores, "PageRank": p_scores}, running_times
 
 
 def pyg_data_from_network_it(graph, measure):
@@ -73,10 +89,10 @@ def pyg_data_from_network_it(graph, measure):
     x = torch.tensor(list(range(graph.numberOfNodes())), dtype=torch.float).view(-1, 1)
     if graph.isWeighted():
         G = torch_geometric.data.Data(x=x, edge_index=indices, weight=weights,
-                                      y=torch.tensor(measure.scores(), dtype=torch.float).view(-1, 1))
+                                      y=torch.tensor(measure, dtype=torch.float).view(-1, 1))
     else:
         G = torch_geometric.data.Data(x=x, edge_index=indices,
-                                      y=torch.tensor(measure.scores(), dtype=torch.float).view(-1, 1))
+                                      y=torch.tensor(measure, dtype=torch.float).view(-1, 1))
 
     train_mask = torch.zeros(G.num_nodes, dtype=torch.bool)
     train_mask[:int(0.9 * G.num_nodes)] = 1

@@ -1,7 +1,7 @@
 Network,Measure,Final Train Error,Min Test Error,Kendalls Tau,Best Config,Running Time Networkit,Running Time NN,Time Difference
-Adolescent health network,Degree Centrality,0.0016300445,0.0016361149,0.0583,32_3,0.003194,0.000419,0.002775
-Adolescent health network,Eigenvector Centrality,0.0029470439,0.003177664,0.2791,256_3,0.006281,0.000348,0.005933
-Adolescent health network,PageRank,1.1397252,1.0910635,0.7182,64_5,0.003351,0.000305,0.003046
-Yeast network,Degree Centrality,0.0008517261,0.000981828,0.4158,256_5,2.7e-05,0.000331,-0.000304
-Yeast network,Eigenvector Centrality,0.0027963817,0.0024694612,0.3691,256_3,0.037811,0.000149,0.037662
-Yeast network,PageRank,0.6722894,0.8713364,0.7855,256_4,0.002618,0.000143,0.002475
+Adolescent health network,Degree,0.012623889,0.011846805,0.9369,128_4,0.00215,0.000175,0.001975
+Adolescent health network,Eigenvector Centrality,0.0043812534,0.006168665,0.2619,128_4,0.004036,0.000155,0.003881
+Adolescent health network,PageRank,0.032829396,0.031344097,0.715,64_3,0.002646,0.000152,0.002494
+Yeast network,Degree,0.0049522077,0.005312606,0.7564,64_3,1.9e-05,0.000151,-0.000132
+Yeast network,Eigenvector Centrality,0.0023595053,0.0018900381,0.4611,256_3,0.017124,0.000154,0.01697
+Yeast network,PageRank,0.004542186,0.005384265,0.8033,128_3,0.002725,0.000271,0.002454

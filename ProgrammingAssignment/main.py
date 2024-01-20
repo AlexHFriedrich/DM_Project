@@ -1,7 +1,7 @@
 import time
 
 import torch
-from tqdm import tqdm
+from tqdm import tqdm, trange
 import pandas as pd
 from Read_Data import load_data_list
 from metrics import compute_kendall_tau, plot_approximation_ratio
@@ -41,19 +41,31 @@ if __name__ == "__main__":
                 gin = GIN(*configs[config])
 
                 data, train_mask = dataset
-
-                # train the model
-                gin.train()
-                optimizer = torch.optim.Adam(gin.parameters(), lr=0.001)
                 criterion = torch.nn.L1Loss()
 
-                num_epochs = 500
-                for epoch in range(num_epochs + 1):
+                lr = 0.01
+                num_epochs = 1000
+                temp_loss = 100000
+                for epoch in range(num_epochs):
+                    # train the model
+                    gin.train()
+
+                    optimizer = torch.optim.Adam(gin.parameters(), lr=lr)
                     optimizer.zero_grad()
 
                     out = gin.forward(x=data.x, edge_index=data.edge_index)
 
                     loss = criterion(out.view(-1)[train_mask], data.y[train_mask].view(-1))
+
+                    # early stopping if the loss does not decrease by more than 1% for 20 epochs
+                    if epoch % 20 == 0 and epoch > 50:
+                        if abs(temp_loss - loss) > abs(temp_loss) / 100:
+                            temp_loss = loss
+                            # adaptive learning rate decay
+                            lr = lr / 1.15
+                        else:
+                            print("\nEarly stopping at epoch: ", epoch)
+                            break
 
                     loss.backward()
                     optimizer.step()
@@ -85,5 +97,11 @@ if __name__ == "__main__":
                                'Running Time Networkit': running_times_network_it[measure],
                                'Running Time NN': running_times_nn[measure],
                                'Time Difference': running_times_network_it[measure] - running_times_nn[measure]}
+    # rounding the values to improve readability
+    df[['Running Time Networkit', 'Running Time NN', 'Time Difference']] = \
+        df[['Running Time Networkit', 'Running Time NN', 'Time Difference']].round(6)
+    df[['Final Train Error', 'Min Test Error', 'Kendalls Tau']] = \
+        df[['Final Train Error', 'Min Test Error', 'Kendalls Tau']].round(4)
 
     df.to_csv('results.csv', index=False)
+    print(df.to_string())

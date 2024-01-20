@@ -29,11 +29,16 @@ def plot_approximation_ratio(data, test_out, net, measure=""):
     plt.close()
 
     plt.scatter(test_out, data.y.view(-1).detach())
+    lims = [min(data.y.view(-1).detach()), max(data.y.view(-1).detach())]
+    plt.plot(lims, lims, color="red", label='Identity line')
+    # add a legend to the plot with legend() or plt.legend()
+    plt.legend()
     plt.xlabel('Predicted Values')
     plt.ylabel('True Values')
     plt.title(f'Predicted vs. True Values of Node Property - {measure}')
     plt.savefig(f'plots/{net}_scatter_{measure}.png')
     plt.close()
+
 
 def compute_kendall_tau(data, test_out):
     """

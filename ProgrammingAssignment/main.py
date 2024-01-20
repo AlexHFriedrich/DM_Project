@@ -32,11 +32,7 @@ if __name__ == "__main__":
         network = data_sets[net][0]
         running_times_network_it = data_sets[net][1]
         running_times_nn = {}
-        """
-        keys_to_delete = ["Eigenvector Centrality", "PageRank"]
-        for key in keys_to_delete:
-            del network[key]
-        """
+
         for dataset in tqdm(network):
             measure = dataset
             dataset = network[measure]
@@ -60,7 +56,7 @@ if __name__ == "__main__":
                     optimizer = torch.optim.Adam(gin.parameters(), lr=lr)
                     optimizer.zero_grad()
 
-                    out = gin.forward(x=data.x, edge_index=data.edge_index)
+                    out = gin(x=data.x, edge_index=data.edge_index)
 
                     loss = criterion(out.view(-1)[train_mask], data.y[train_mask].view(-1))
 
@@ -79,9 +75,9 @@ if __name__ == "__main__":
 
                 gin.eval()
                 start = time.perf_counter()
-                out = gin.forward(x=data.x, edge_index=data.edge_index)
+                out = gin(x=data.x, edge_index=data.edge_index)
                 end = time.perf_counter()
-                
+
                 train_error = criterion(out.view(-1)[train_mask], data.y[train_mask].view(-1))
 
                 test_error = criterion(out.view(-1)[~train_mask], data.y.view(-1)[~train_mask])

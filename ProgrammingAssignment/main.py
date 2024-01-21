@@ -60,7 +60,8 @@ if __name__ == "__main__":
 
                     loss = criterion(out.view(-1)[train_mask], data.y[train_mask].view(-1))
 
-                    # early stopping if the loss does not decrease by more than 1% for 20 epochs
+                    # early stopping if the loss does not decrease by more than 1% for 20 epochs, very simplified version of the early stopping criterium
+                    # introduced in https://arxiv.org/abs/1703.09580, by approximating the loss gradient, to implement early stopping without validation set
                     if epoch % 20 == 0 and epoch > 50:
                         if abs(temp_loss - loss) > abs(temp_loss) / 100:
                             temp_loss = loss

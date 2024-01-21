@@ -15,8 +15,8 @@ This file handles the reading of the data from the KONECT database, calculation 
 networkit and the conversion of the data to PyTorch Geometric Data objects.
 """
 
-paths = {"Adolescent health network": "data/moreno_health/out.moreno_health_health",
-         "Yeast network": "data/moreno_propro/out.moreno_propro_propro"}
+paths = {"Adolescent health network": "../Data/moreno_health/out.moreno_health_health",
+         "Yeast network": "../Data/moreno_propro/out.moreno_propro_propro"}
 
 
 def path_to_data(path) -> tuple[dict[str, tuple[Data, Any]], dict[str, Any]]:

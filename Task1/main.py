@@ -98,8 +98,8 @@ if __name__ == '__main__':
     file_format = 'KONECT'
     
     # path to files  
-    files = {'Yeast':'data/moreno_propro/out.moreno_propro_propro',
-             'Adolescent Health': 'data/moreno_health/out.moreno_health_health'}   
+    files = {'Yeast':'../Data/moreno_propro/out.moreno_propro_propro',
+             'Adolescent Health': '../Data/moreno_health/out.moreno_health_health'}   
     
     
     for graph_name, file in files.items(): 
@@ -112,7 +112,7 @@ if __name__ == '__main__':
         print_stats(Gnk)
         
         # plot full graph
-        plot_graph(Gnk, graph_name, '{}_graph.pdf'.format(graph_name)) 
+        plot_graph(Gnk, graph_name, './plots/{}_graph.pdf'.format(graph_name)) 
         
         # get subgraph including n top (out) degree nodes and (out) neighbors 
         subgraph = get_subgraph(Gnk, n)

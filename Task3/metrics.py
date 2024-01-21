@@ -25,7 +25,7 @@ def plot_approximation_ratio(data, test_out, net, measure=""):
     plt.ylabel('Frequency')
     plt.title(f'Distribution of absolute distances - {measure}')
     plt.legend()
-    plt.savefig(f'plots/{net}_absol_dist_{measure}.png')
+    plt.savefig(f'./plots/{net}_absol_dist_{measure}.png')
     plt.close()
 
     plt.scatter(test_out, data.y.view(-1).detach())
@@ -36,7 +36,7 @@ def plot_approximation_ratio(data, test_out, net, measure=""):
     plt.xlabel('Predicted Values')
     plt.ylabel('True Values')
     plt.title(f'Predicted vs. True Values of Node Property - {measure}')
-    plt.savefig(f'plots/{net}_scatter_{measure}.png')
+    plt.savefig(f'./plots/{net}_scatter_{measure}.png')
     plt.close()
 
 

@@ -151,14 +151,14 @@ def write_results(Gnx, scores, network_name):
     :type network_name: str
     """
 
-    with open(network_name + '_edges.txt', 'w') as f:
+    with open(f'./plots/cytoscape_graphs/{network_name}_edges.txt', 'w') as f:
         f.write('node1\tnode2\n')
         for edge in Gnx.edges:
             n1, n2 = edge
             f.write('{}\t{}\n'.format(n1, n2))
 
     keys = scores.keys()
-    with open(network_name + '_centrality.txt', 'w') as f:
+    with open(f'./plots/cytoscape_graphs/{network_name}_centrality.txt', 'w') as f:
         f.write('node\t' + '\t'.join(keys) + '\n')
         for node in Gnx.nodes:
             data = [str(node)] + [str(scores[key][node]) for key in keys]
@@ -214,8 +214,8 @@ if __name__ == '__main__':
     file_format = 'KONECT'
 
     # path to files   
-    files = {'Yeast': 'data/moreno_propro/out.moreno_propro_propro',
-             'Adolescent Health': 'data/moreno_health/out.moreno_health_health'}
+    files = {'Yeast': '../Data/moreno_propro/out.moreno_propro_propro',
+             'Adolescent Health': '../Data/moreno_health/out.moreno_health_health'}
 
     # dictionaries to store results
     kendalls_tau = {}
@@ -284,7 +284,7 @@ if __name__ == '__main__':
                 data[network_name][measure] = dict(unweighted_scores)
 
         # plot histogram of centrality measures
-        plot_hist(data[network_name], network_name, network_name + '_hist.pdf')
+        plot_hist(data[network_name], network_name, f'./plots/histograms/{network_name}_hist.pdf')
 
         # write results to files
         write_results(Gnx, data[network_name], network_name)

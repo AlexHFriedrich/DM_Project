@@ -120,4 +120,4 @@ if __name__ == '__main__':
         # plot subgraph
         plot_graph(subgraph,
                    '{}\n {} top degree nodes and neighbors'.format(graph_name, n), 
-                   '{}_top{}graph.pdf'.format(graph_name, n))
+                   './plots/{}_top{}graph.pdf'.format(graph_name, n))

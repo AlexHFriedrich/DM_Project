@@ -16,8 +16,11 @@ To execute a task, follow these steps:
 
 3. After successfully preparing the Python environment, navigate to the specific task folder.
 
-4. Run the task using the following command:
+4. Run the task by navigating to the corresponding folder and then using the following command:
 
     ```bash
     python main.py
     ```
+   
+Notes for task 3: The code checks automatically if a GPU is available but also runs on CPU without problems, but does 
+yield worse results.

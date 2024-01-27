@@ -1,8 +1,0 @@
-# l1 loss documentation
-https://pytorch.org/docs/stable/generated/torch.nn.L1Loss.html
-# sample GIN architecture
-https://mlabonne.github.io/blog/posts/2022-04-25-Graph_Isomorphism_Network.html
-# import Konect graph datasets into networkit
-https://networkit.github.io/dev-docs/notebooks/IONotebook.html
-# networkit centrality measures
-https://networkit.github.io/dev-docs/python_api/centrality.html#

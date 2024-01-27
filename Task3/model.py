@@ -10,6 +10,8 @@ This file contains the GIN model class that is used for task 3.
 class GIN(torch.nn.Module):
     """
     This class implements a GIN model with the given number of layers and hidden dimension.
+    sample GIN architecture
+    https://mlabonne.github.io/blog/posts/2022-04-25-Graph_Isomorphism_Network.html
     """
     def __init__(self, dim_h, num_layers=3):
         super(GIN, self).__init__()

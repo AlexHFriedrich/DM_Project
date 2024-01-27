@@ -50,6 +50,11 @@ def normalize_scores(scores):
 def centrality_from_network_it(graph) -> tuple[
     dict[str, Union[PageRank, EigenvectorCentrality, DegreeCentrality]], dict[str, Any]]:
     """
+    networkit centrality measures
+    https://networkit.github.io/dev-docs/python_api/centrality.html#
+    import Konect graph datasets into networkit
+    https://networkit.github.io/dev-docs/notebooks/IONotebook.html
+
     :param graph: networkit graph
     :return: a tuple containing a dictionary of the centrality measures and a dictionary of the running times of the
     networkit
